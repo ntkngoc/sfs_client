@@ -105,7 +105,7 @@ class SfsClient {
     return AuthenticateRequestType(
       relyingPartyId: options["rpId"],
       challenge: options["challenge"],
-      mediation: MediationType.Conditional,
+      mediation: MediationType.Required,
       preferImmediatelyAvailableCredentials: true,
       userVerification: "preferred",
       timeout: options.containsKey("timeout") ? options["timeout"] as int : 60000,
