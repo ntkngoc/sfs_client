@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:passkeys/types.dart';
 
 import 'fido2_repository.dart';
@@ -15,21 +17,27 @@ class SfsClient {
   Future<String> register(String username, String displayName) async {
     if (username.isEmpty) return 'Tên đăng nhập không được để trống.';
     if (displayName.isEmpty) return 'Tên hiển thị không được để trống.';
+
+    final result = await _fido2repository.createUserAccount(username, displayName);
+    final id = result["id"];
+    if (id == null) {
+      return 'Lỗi: Đăng ký thất bại!';
+    }
     try {
       final passkeys = PasskeyAuthenticator();
-      final options = await getAttestationOptions(username: username, displayName: displayName);
+      final options = await getAttestationOptions(username: username, displayName: username);
       if (options == null) return 'Lỗi: No response from server';
       RegisterRequestType registerRequestType = _createRegisterRequestType(options);
       RegisterResponseType registerResponseType = await passkeys.register(registerRequestType);
       final response = await sendAttestationResult(attestationResult: convertRegisterResponseTypeToMap(registerResponseType));
-      return response?.isNotEmpty == true ? '$response' : 'Lỗi: No response from server';
+      return response?.isNotEmpty == true ? id : 'Lỗi: No response from server';
     } catch (e) {
       if (e.toString().contains("excluded credentials exists")) {
         return 'Lỗi: Một passkey đã tồn tại trên thiết bị. Vui lòng xóa passkey cũ trong cài đặt thiết bị.';
       } else if (e.toString().contains("RP ID cannot be validated")) {
         return 'Lỗi: Không thể xác thực RP ID. Vui lòng kiểm tra cấu hình Digital Asset Links trên server.';
       } else {
-        return 'Lỗi khi đăng ký passkey: $e';
+        return 'Lỗi: $e';
       }
     }
   }
@@ -57,7 +65,7 @@ class SfsClient {
         return 'Lỗi: Domain chưa được liên kết với ứng dụng. Vui lòng kiểm tra cấu hình.';
       }
       else {
-        return 'Lỗi khi đăng ký passkey: $e';
+        return 'Lỗi: $e';
       }
     }
   }

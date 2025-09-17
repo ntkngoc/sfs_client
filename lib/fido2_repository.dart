@@ -7,7 +7,13 @@ class Fido2Repository {
 
   Fido2Repository.withServerUrl(this._serverUrl) : _apiService = ApiService();
 
-  Future<List<AuthenticatorModel>> getAuthenticator(String fidoId) async {
+  Future<Map<String, dynamic>> createUserAccount(String username, String displayName) async {
+    return await _apiService.post('$_serverUrl/api/users', {
+      "username": username, "displayName": displayName
+    });
+  }
+
+  Future<List<AuthenticatorModel>> getAllUserAuthenticator(String fidoId) async {
     List<dynamic> response = (await _apiService.get('$_serverUrl/api/getAuthenticator/$fidoId')) as List;
 
     // Kiểm tra xem response có phải là List hay không
@@ -22,11 +28,11 @@ class Fido2Repository {
     return authenticators;
   }
 
-  Future<String?> updateNameAuthenticator(String fidoId, String authId, Map<String, dynamic> data) async {
+  Future<String?> updateUserAuthenticator(String fidoId, String authId, Map<String, dynamic> data) async {
     return await _apiService.put('$_serverUrl/api/updateAuthenticator/$fidoId/$authId', data);
   }
 
-  Future<String?> deleteAuthenticator(String fidoId, String authId) async {
+  Future<String?> deleteUserAuthenticator(String fidoId, String authId) async {
     return await _apiService.delete('$_serverUrl/api/delAuthenticator/$fidoId/$authId');
   }
 
