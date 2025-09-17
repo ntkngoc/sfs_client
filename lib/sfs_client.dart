@@ -14,18 +14,18 @@ class SfsClient {
 
   SfsClient(this._serverUrl, this._clientId, this._clientSecret) : _fido2repository = Fido2Repository.withServerUrl(_serverUrl);
 
-  Future<String> register(String username, String displayName, {String count = ""}) async {
+  Future<String> register(String username, String displayName) async {
     if (username.isEmpty) return 'Tên đăng nhập không được để trống.';
     if (displayName.isEmpty) return 'Tên hiển thị không được để trống.';
 
-    final result = await _fido2repository.createUserAccount(username + count, displayName + count);
+    final result = await _fido2repository.createUserAccount(username, displayName);
     final id = result["id"];
     if (id == null) {
       return 'Lỗi: Đăng ký thất bại!';
     }
     try {
       final passkeys = PasskeyAuthenticator();
-      final options = await getAttestationOptions(username: username + count, displayName: username + count);
+      final options = await getAttestationOptions(username: username, displayName: username);
       if (options == null) return 'Lỗi: No response from server';
       RegisterRequestType registerRequestType = _createRegisterRequestType(options);
       RegisterResponseType registerResponseType = await passkeys.register(registerRequestType);
