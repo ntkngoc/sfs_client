@@ -136,18 +136,12 @@ class SfsClient {
 
       // 2. Create user
       User user;
-      // try {
+      try {
         user = await _fido2Repository.createUser(username, displayName);
-        // print('✅ Đã tạo user: ${user.id}');
-      // } catch (e) {
-      //   if (e.toString().contains('exists') || e.toString().contains('409')) {
-      //     // User already exists, get existing user
-      //     print('ℹ️ User đã tồn tại');
-      //     return 'Lỗi: Người dùng đã tồn tại!';
-      //   } else {
-      //     throw Exception('Lỗi: $e');
-      //   }
-      // }
+        print('✅ Đã tạo user: ${user.id}');
+      } catch (e) {
+        return 'Lỗi: $e';
+      }
 
       // 3. Get attestation options
       Map<String, dynamic> attestationOptions = await _fido2Repository.attestationOptions(username, displayName);
