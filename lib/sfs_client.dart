@@ -175,9 +175,9 @@ class SfsClient {
     }
   }
 
-  Future<String> authenticate(String username) async {
+  Future<bool> authenticate(String username) async {
     try {
-      if (username.isEmpty) return 'Tên đăng nhập không được để trống.';
+      if (username.isEmpty) return false;
       final passkeys = PasskeyAuthenticator();
       final options = await _fido2Repository.assertionOptions(username);
       // if (options == null) return 'Lỗi: No response from server';
@@ -185,22 +185,23 @@ class SfsClient {
       AuthenticateResponseType authenticateResponseType = await passkeys.authenticate(authenticateRequestType);
       Map<String, dynamic> authenticateResponseTypeMap = convertAuthenticateResponseToMap(authenticateResponseType);
       final assertionResult = await _fido2Repository.assertionResult(authenticateResponseTypeMap);
-      return 'Xác thực thành công!';
+      return true;
     } catch (e) {
-      if (e.toString().contains("excluded credentials exists")) {
-        return 'Lỗi: Một passkey đã tồn tại trên thiết bị. Vui lòng xóa passkey cũ trong cài đặt thiết bị.';
-      } else if (e.toString().contains("RP ID cannot be validated")) {
-        return 'Lỗi: Không thể xác thực RP ID. Vui lòng kiểm tra cấu hình Digital Asset Links trên server.';
-      } else if (e.toString().contains("cancelled") || e is PasskeyAuthCancelledException) {
-        return 'Xác thực bị hủy bởi người dùng.';
-      } else if (e is NoCredentialsAvailableException) {
-        return 'NoCredentialsAvailableException';
-      } else if (e is DomainNotAssociatedException) {
-        return 'Lỗi: Domain chưa được liên kết với ứng dụng. Vui lòng kiểm tra cấu hình.';
-      }
-      else {
-        return 'Lỗi: $e';
-      }
+      return false;
+      // if (e.toString().contains("excluded credentials exists")) {
+      //   return 'Lỗi: Một passkey đã tồn tại trên thiết bị. Vui lòng xóa passkey cũ trong cài đặt thiết bị.';
+      // } else if (e.toString().contains("RP ID cannot be validated")) {
+      //   return 'Lỗi: Không thể xác thực RP ID. Vui lòng kiểm tra cấu hình Digital Asset Links trên server.';
+      // } else if (e.toString().contains("cancelled") || e is PasskeyAuthCancelledException) {
+      //   return 'Xác thực bị hủy bởi người dùng.';
+      // } else if (e is NoCredentialsAvailableException) {
+      //   return 'NoCredentialsAvailableException';
+      // } else if (e is DomainNotAssociatedException) {
+      //   return 'Lỗi: Domain chưa được liên kết với ứng dụng. Vui lòng kiểm tra cấu hình.';
+      // }
+      // else {
+      //   return 'Lỗi: $e';
+      // }
     }
   }
 
