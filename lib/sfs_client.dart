@@ -130,18 +130,22 @@ class SfsClient {
   }
 
   Future<String> register(String username, String displayName) async {
-    try {
-      if (username.isEmpty) return 'Tên đăng nhập không được để trống.';
-      if (displayName.isEmpty) return 'Tên hiển thị không được để trống.';
+    if (username.isEmpty) return 'Tên đăng nhập không được để trống.';
+    if (displayName.isEmpty) return 'Tên hiển thị không được để trống.';
 
+    // 2. Create user
+    User? user = null;
+    user = await _fido2Repository.createUser(username, displayName);
+
+    try {
       // 2. Create user
-      User user;
-      try {
-        user = await _fido2Repository.createUser(username, displayName);
-        print('✅ Đã tạo user: ${user.id}');
-      } catch (e) {
-        return 'Lỗi: $e';
-      }
+      // User user;
+      // try {
+      //   user = await _fido2Repository.createUser(username, displayName);
+      //   print('✅ Đã tạo user: ${user.id}');
+      // } catch (e) {
+      //   return 'Lỗi: $e';
+      // }
 
       // 3. Get attestation options
       Map<String, dynamic> attestationOptions = await _fido2Repository.attestationOptions(username, displayName);
