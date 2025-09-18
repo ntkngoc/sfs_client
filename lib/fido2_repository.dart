@@ -55,7 +55,7 @@ class Fido2Repository {
   }
 
   /// Tạo user mới
-  Future<User> createUser(String username, String displayName) async {
+  Future<User?> createUser(String username, String displayName) async {
     await connect();
     final request = CreateUserRequest(username: username, displayName: displayName);
     return await _endpoint.createUser(request);

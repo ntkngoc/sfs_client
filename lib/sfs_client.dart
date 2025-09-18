@@ -83,19 +83,19 @@ class SfsClient {
   }
 
   /// Create a new user
-  Future<User> createUser(String username, String displayName) async {
-    if (_enableLogging) {
-      print('👤 SfsClient: Creating user "$username"...');
-    }
-
-    final user = await _fido2Repository.createUser(username, displayName);
-
-    if (_enableLogging) {
-      print('✅ SfsClient: User created with ID: ${user.id}');
-    }
-
-    return user;
-  }
+  // Future<User> createUser(String username, String displayName) async {
+  //   if (_enableLogging) {
+  //     print('👤 SfsClient: Creating user "$username"...');
+  //   }
+  //
+  //   final user = await _fido2Repository.createUser(username, displayName);
+  //
+  //   if (_enableLogging) {
+  //     print('✅ SfsClient: User created with ID: ${user.id}');
+  //   }
+  //
+  //   return user;
+  // }
 
   // ✅ AUTHENTICATOR MANAGEMENT
   /// Get user's authenticators
@@ -134,8 +134,7 @@ class SfsClient {
     if (displayName.isEmpty) return 'Tên hiển thị không được để trống.';
 
     // 2. Create user
-    User? user = null;
-    user = await _fido2Repository.createUser(username, displayName);
+    User? user = await _fido2Repository.createUser(username, displayName);
 
     try {
       // 2. Create user
@@ -163,7 +162,7 @@ class SfsClient {
       Map<String, dynamic> registerResponseTypeMap = convertRegisterResponseTypeToMap(registerResponseType);
       final attestationResult = await _fido2Repository.attestationResult(registerResponseTypeMap);
 
-      return user.id;
+      return user != null ? user.id : 'Lỗi: Đăng ký thất bại!';
     } catch (e) {
       if (e.toString().contains("excluded credentials exists")) {
         return 'Lỗi: Một passkey đã tồn tại trên thiết bị. Vui lòng xóa passkey cũ trong cài đặt thiết bị.';

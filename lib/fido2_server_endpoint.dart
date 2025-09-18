@@ -148,8 +148,11 @@ class Fido2ServerEndpoint {
     return (data as List? ?? []).map((json) => User.fromJson(json)).toList();
   }
 
-  Future<User> createUser(CreateUserRequest request) async {
+  Future<User?> createUser(CreateUserRequest request) async {
     final response = await _post('/api/endpoint/users', data: request.toJson());
+    if (response.statusCode != 200) {
+      return null;
+    }
     final data = await _handleResponse(response);
     return User.fromJson(data);
   }
