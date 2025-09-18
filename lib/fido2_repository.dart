@@ -1,68 +1,117 @@
-import 'api_service.dart';
-import 'authenticator_model.dart';
+import 'package:passkeys/types.dart';
+import 'model.dart';
+import 'fido2_server_endpoint.dart';
 
+/// 🔐 FIDO2 Repository - Lớp trung gian quản lý FIDO2/WebAuthn operations
+///
+/// Cung cấp interface đơn giản để tương tác với FIDO2 Server
+/// Hỗ trợ các tính năng cơ bản: User Management, Registration, Authentication
 class Fido2Repository {
-  final String _serverUrl;
-  final ApiService _apiService;
+  final Fido2ServerEndpoint _endpoint;
 
-  Fido2Repository.withServerUrl(this._serverUrl) : _apiService = ApiService();
+  // ✅ CONSTRUCTORS
+  /// Tạo repository với server URL và credentials
+  Fido2Repository({
+    required String serverUrl,
+    required String clientId,
+    required String clientSecret,
+  }) : _endpoint = Fido2ServerEndpoint(serverUrl, clientId, clientSecret);
 
-  Future<Map<String, dynamic>> createUserAccount(String username, String displayName) async {
-    return await _apiService.post('$_serverUrl/api/users', {
-      "username": username, "displayName": displayName
-    });
+  // ✅ CONNECTION MANAGEMENT
+  /// Kết nối tới FIDO2 Server
+  Future<void> connect() async {
+    await _endpoint.connect();
   }
 
-  Future<List<AuthenticatorModel>> getAllUserAuthenticator(String fidoId) async {
-    List<dynamic> response = (await _apiService.get('$_serverUrl/api/getAuthenticator/$fidoId')) as List;
-
-    // Kiểm tra xem response có phải là List hay không
-    List<AuthenticatorModel> authenticators = response.map((item) {
-      if (item is Map<String, dynamic>) {
-        return AuthenticatorModel.fromJson(item);
-      } else {
-        throw Exception('Item is not a valid JSON object');
-      }
-    }).toList();
-
-    return authenticators;
+  /// Ngắt kết nối khỏi FIDO2 Server
+  Future<void> disconnect() async {
+    await _endpoint.disconnect();
   }
 
-  Future<String?> updateUserAuthenticator(String fidoId, String authId, Map<String, dynamic> data) async {
-    return await _apiService.put('$_serverUrl/api/updateAuthenticator/$fidoId/$authId', data);
+  /// Kiểm tra trạng thái kết nối
+  bool get isConnected => _endpoint.isConnected;
+
+  // ✅ SERVER STATUS & INFO
+  /// Lấy trạng thái server
+  // Future<EndpointStatus> getStatus() async {
+  //   return await _endpoint.getStatus();
+  // }
+
+  /// Lấy thông tin server
+  // Future<ServiceInfo> getInfo() async {
+  //   return await _endpoint.getInfo();
+  // }
+
+  /// Lấy thông tin license
+  // Future<ServiceLicense> getLicense() async {
+  //   return await _endpoint.getLicense();
+  // }
+
+  // ✅ USER MANAGEMENT
+  /// Lấy danh sách users
+  Future<List<User>> getUsers() async {
+    await connect();
+    return await _endpoint.getUsers();
   }
 
-  Future<String?> deleteUserAuthenticator(String fidoId, String authId) async {
-    return await _apiService.delete('$_serverUrl/api/delAuthenticator/$fidoId/$authId');
+  /// Tạo user mới
+  Future<User> createUser(String username, String displayName) async {
+    await connect();
+    final request = CreateUserRequest(username: username, displayName: displayName);
+    return await _endpoint.createUser(request);
   }
 
-  Future<Map<String, dynamic>> getAttestationOptions(String username, String displayName) async {
-    return await _apiService.post('$_serverUrl/api/webauthn/attestation/options', {
-      "username": username, "displayName": displayName
-    });
+  /// Lấy thông tin user theo ID
+  Future<User> getUserById(String userId) async {
+    await connect();
+    return await _endpoint.getUserById(userId);
   }
 
-  Future<String?> sendAttestationResult(Map<String, dynamic> attestationResult) async {
-    try {
-      final response = await _apiService.post('$_serverUrl/api/webauthn/attestation/result', attestationResult);
-      return response.toString();
-    } catch (e) {
-      throw Exception('Failed to send attestation result: $e');
-    }
+  /// Xóa user theo ID
+  // Future<User> deleteUserById(String userId) async {
+  //   return await _endpoint.deleteUserById(userId);
+  // }
+
+  // ✅ AUTHENTICATOR MANAGEMENT
+  /// Lấy danh sách authenticators của user
+  Future<List<Authenticator>> getAuthenticators(String userId) async {
+    await connect();
+    return await _endpoint.getAuthenticators(userId);
+  }
+  Future<Authenticator> updateAuthenticator(String userId, String authenticatorId, Map<String, dynamic> body) async {
+    await connect();
+    return await _endpoint.updateAuthenticator(userId, authenticatorId, body);
+  }
+  Future<Authenticator> deleteAuthenticator(String userId, String authenticatorId) async {
+    await connect();
+    return await _endpoint.deleteAuthenticator(userId, authenticatorId);
   }
 
-  Future<Map<String, dynamic>> getAssertionOptions(String username) async {
-    return await _apiService.post('$_serverUrl/api/webauthn/assertion/options', {
-      "username": username
-    });
+  // ✅ WEBAUTHN REGISTRATION (ATTESTATION)
+  /// Bắt đầu quá trình registration
+  Future<Map<String, dynamic>> attestationOptions(String username, String displayName) async {
+    await connect();
+    final request = AttestationOptionsRequest(username: username, displayName: displayName);
+    return await _endpoint.attestationOptions(request);
   }
 
-  Future<String?> sendAssertionResult(Map<String, dynamic> attestationResult) async {
-    try {
-      final response = await _apiService.post('$_serverUrl/api/webauthn/assertion/result', attestationResult);
-      return response.toString();
-    } catch (e) {
-      throw Exception('Failed to send attestation result: $e');
-    }
+  /// Hoàn tất quá trình registration
+  Future<AttestationResult> attestationResult(Map<String, dynamic> credential) async {
+    await connect();
+    return await _endpoint.attestationResult(credential);
+  }
+
+  // ✅ WEBAUTHN AUTHENTICATION (ASSERTION)
+  /// Bắt đầu quá trình authentication
+  Future<Map<String, dynamic>> assertionOptions(String username) async {
+    await connect();
+    final request = AssertionOptionsRequest(username: username);
+    return await _endpoint.assertionOptions(request);
+  }
+
+  /// Hoàn tất quá trình authentication
+  Future<Map<String, dynamic>> assertionResult(Map<String, dynamic> credential) async {
+    await connect();
+    return await _endpoint.assertionResult(credential);
   }
 }
