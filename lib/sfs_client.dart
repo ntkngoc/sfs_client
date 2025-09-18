@@ -162,7 +162,8 @@ class SfsClient {
       Map<String, dynamic> registerResponseTypeMap = convertRegisterResponseTypeToMap(registerResponseType);
       final attestationResult = await _fido2Repository.attestationResult(registerResponseTypeMap);
 
-      return user != null ? user.id : 'Lỗi: Đăng ký thất bại!';
+      // return user != null ? user.id : 'Lỗi: Đăng ký thất bại!';
+      return user != null ? user.id : '';
     } catch (e) {
       if (e.toString().contains("excluded credentials exists")) {
         return 'Lỗi: Một passkey đã tồn tại trên thiết bị. Vui lòng xóa passkey cũ trong cài đặt thiết bị.';
