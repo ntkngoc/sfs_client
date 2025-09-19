@@ -218,10 +218,10 @@ class SfsClient {
         id: options["user"]["id"],
       ),
       authSelectionType: AuthenticatorSelectionType(
-        requireResidentKey: true,
+        requireResidentKey: false,
         residentKey: 'required',
         userVerification: 'required',
-        authenticatorAttachment: 'platform',
+        authenticatorAttachment: 'cross-platform',
       ),
       timeout: options["timeout"],
       excludeCredentials: options.containsKey("excludeCredentials") && options["excludeCredentials"] is List<dynamic>
